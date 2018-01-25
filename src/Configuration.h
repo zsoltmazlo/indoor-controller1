@@ -9,17 +9,6 @@
 
 using Connection = MqttConnection<4, WiFiClient>;
 
-template <typename ElemType, int N>
-class ConstArray {
-    const ElemType a[N];
-
-   public:
-    template <class... T>
-    constexpr ConstArray(T... p) : a{p...} {}
-    constexpr int size() { return N; }
-    constexpr ElemType operator[](int i) { return a[i]; }
-};
-
 constexpr unsigned long long operator"" khz(unsigned long long khz) {
     return khz * 1000;
 }
@@ -41,6 +30,7 @@ constexpr unsigned long long operator"" _bit(unsigned long long bit) {
 }
 
 struct Configuration {
+    static constexpr char* firmware_version = "1.0.0b";
     static constexpr char* client_id = CLIENT_ID;
     static constexpr char* ssid = "lsmx49";
     static constexpr char* pwd = "";

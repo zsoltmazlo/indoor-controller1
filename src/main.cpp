@@ -28,7 +28,7 @@ void setup() {
     Connection::instance->setDebugStream(&Serial);
 
     delay(100ms);
-    printf("MAIN | MCU started\n");
+    printf("MAIN | MCU started\n     | Version: %s\n", Configuration::firmware_version);
 
     // start mqtt connection listener thread
     xTaskCreatePinnedToCore(tasks::connection, "connection_task", 8192, NULL, 1, NULL, 1);
