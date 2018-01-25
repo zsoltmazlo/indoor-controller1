@@ -67,11 +67,11 @@ void tasks::temperature(void* args) {
             xQueueSend(tasks::queues::temperatureQueue, &temp, (TickType_t)10);
 
             // and send as an mqtt message as well
-            auto ts = String(ntpClient.getEpochTime() - 3600) + "000";
+            auto ts = String(ntpClient.getEpochTime()) + "000";
             StaticJsonBuffer<200> jsonBuffer;
             JsonObject& root = jsonBuffer.createObject();
             root["timestamp"] = ts.c_str();
-            root["temperature"] = temperature;
+            root["temperature"] = temp;
             String output;
             root.printTo(output);
             ::Connection::instance->publish(Configuration::Topics::sensor, output.c_str());

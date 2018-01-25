@@ -67,6 +67,7 @@ struct Configuration {
         static constexpr bool temperature = true;
         static constexpr bool tvremote = false;
         static constexpr bool display = true;
+        static constexpr bool ledcontrol = true;
     };
 
     struct Display {

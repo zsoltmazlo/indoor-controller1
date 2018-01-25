@@ -5,19 +5,21 @@
 #include "logo.h"
 #include "tasks.h"
 
+#include <ctime>
+
 using namespace tasks::queues;
 using namespace common;
 
 ApplicationState appState;
 
 WiFiUDP udpClient;
-NTPClient ntpClient{udpClient, "0.hu.pool.ntp.org", 3600};
+NTPClient ntpClient{udpClient, "0.hu.pool.ntp.org", 0};
 
 static std::string formatDate(const char* fmt, uint64_t epoch) {
     char buf[20];
     time_t rawtime = static_cast<time_t>(epoch);
-    auto t = localtime(&rawtime);
-    strftime(buf, 20, fmt, t);
+    auto t = std::localtime(&rawtime);
+    std::strftime(buf, 20, fmt, t);
     return buf;
 }
 
@@ -61,11 +63,6 @@ void tasks::Display::operator()(void* args) {
         // display_.centerredText(64, 0, "Overview");
 
         // clang-format off
-        constexpr std::array<char*, 7> days = {
-            "Sunday",   "Monday", "Tuesday", "Wednesday",
-            "Thursday", "Friday", "Saturday"
-        };
-
         Display::MetricRow leds = {
             std::make_tuple("LED1", appState.led[0], "%"),
             std::make_tuple("LED2", appState.led[1], "%")
@@ -80,9 +77,9 @@ void tasks::Display::operator()(void* args) {
 
         // display date and time
         display.text(2, 12, "%s", formatDate("%b %e", ntpClient.getEpochTime()).c_str());
-        display.text(2, 24, "%s", days[ntpClient.getDay()]);
+        display.text(2, 24, "%s", formatDate("%A", ntpClient.getEpochTime()).c_str());
         display.setTextSize(2);
-        display.text(68, 14, "%02d:%02d", ntpClient.getHours(), ntpClient.getMinutes());
+        display.text(68, 14, "%s", formatDate("%H.%M", ntpClient.getEpochTime()).c_str());
         display.setTextSize(1);
     });
 
