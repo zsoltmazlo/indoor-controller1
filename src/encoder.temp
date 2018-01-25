@@ -1,0 +1,116 @@
+
+
+    // setup encoder
+    // delay(2000);
+    // state.encoderValueChanged = true;
+    // if (conf.encoder.pullup) {
+    //     pinMode(conf.encoder.pin1, INPUT_PULLUP);
+    //     pinMode(conf.encoder.pin2, INPUT_PULLUP);
+    // } else {
+    //     pinMode(conf.encoder.pin1, INPUT);
+    //     pinMode(conf.encoder.pin2, INPUT);
+    // }
+    // attachInterrupt(digitalPinToInterrupt(conf.encoder.pin1), updateEncoder, FALLING);
+    // attachInterrupt(digitalPinToInterrupt(conf.encoder.pin2), updateEncoder, FALLING);
+
+
+void updateEncoder() {
+    /*
+     * rotating clockwise
+     * pin1: XXXX____XXXX____XXXX____XXXXXXXX
+     * pin2: XXXXXX____XXXX____XXXX____XXXXXX
+     *
+     * rotating anticlockwise
+     * pin1: XXXXXX____XXXX____XXXX____XXXXXX
+     * pin2: XXXX____XXXX____XXXX____XXXXXXXX
+     *
+     * We will always be triggered when pin1 has a falling edge, thus if
+     *  - pin2 is HIGH -> rotating clockwise
+     *  - pin2 is LOW -> rotating anticlockwise
+     *
+     * But, we should handle bouncing input, thus only change the state when both input are in low state
+     *
+     * rotating clockwise
+     * pin1: XXXX____XXXX____XXXX____XXXXXXXX
+     * pin2: XXXXXX____XXXX____XXXX____XXXXXX
+     *          1  2    1  2
+     *
+     * rotating anticlockwise
+     * pin1: XXXXXX____XXXX____XXXX____XXXXXX
+     * pin2: XXXX____XXXX____XXXX____XXXXXXXX
+     *          1 2     1 2
+     */
+    int encoded = (digitalRead(conf.encoder.pin2) << 1) | digitalRead(conf.encoder.pin1);
+    int sum = (state.encoderLastValue << 2) | encoded;
+
+    if (sum == 0b0100) {
+        --state.encoderValue;
+    }
+    if (sum == 0b1000) {
+        ++state.encoderValue;
+    }
+
+    // store this value for next time
+    state.encoderLastValue = encoded;
+    state.encoderValueChanged = true;
+}
+
+
+
+void updateEncoder();
+
+void stepperControllerTask(void* args);
+
+uint8_t microsteps = 0;
+uint8_t microStepControl[8][4] = {{0, 0, 0, 1}, {0, 0, 1, 1}, {0, 0, 1, 0}, {0, 1, 1, 0},
+                                  {0, 1, 0, 0}, {1, 1, 0, 0}, {1, 0, 0, 0}, {1, 0, 0, 1}};
+
+static void apply_steps_on_motor(int16_t steps) {
+    // first, define the rotation by the steps
+    bool direction = steps > 0;
+    std::cout << "STEP | Starting rotating " << steps << " steps" << std::endl;
+
+    for (uint16_t s = 0; s < abs(steps); ++s) {
+        // write control pattern to the digital pins
+        microsteps = (direction ? microsteps + 1 : microsteps - 1) % 8;
+        uint8_t* control = microStepControl[microsteps];
+
+        digitalWrite(conf.stepper.in1, control[0]);
+        digitalWrite(conf.stepper.in2, control[1]);
+        digitalWrite(conf.stepper.in3, control[2]);
+        digitalWrite(conf.stepper.in4, control[3]);
+
+        delayMicroseconds(1000);
+    }
+}
+
+void stepperControllerTask(void* args) {
+    std::cout << "STEP | Task started" << std::endl;
+
+    // first of all: initialize all pin as output
+    pinMode(conf.stepper.in1, OUTPUT);
+    pinMode(conf.stepper.in2, OUTPUT);
+    pinMode(conf.stepper.in3, OUTPUT);
+    pinMode(conf.stepper.in4, OUTPUT);
+
+    // then rotate at least 15 steps to zero out volume
+    std::cout << "STEP | Zero out volume" << std::endl;
+    for (uint8_t i = 0; i < 15; ++i) {
+        apply_steps_on_motor(-conf.stepper.steps_per_volume);
+        vTaskDelay(100);
+    }
+
+    for (;;) {
+        if (state.currentStepperPosition > state.encoderValue && state.currentStepperPosition > 0) {
+            std::cout << "STEP | Moving stepper anticlockwise" << std::endl;
+            apply_steps_on_motor(-conf.stepper.steps_per_volume);
+            --state.currentStepperPosition;
+        } else if (state.currentStepperPosition < state.encoderValue) {  // && state.currentStepperPosition < 30) {
+            std::cout << "STEP | Moving stepper clockwise" << std::endl;
+            apply_steps_on_motor(conf.stepper.steps_per_volume);
+            ++state.currentStepperPosition;
+        } else {
+            vTaskDelay(200);
+        }
+    }
+}
