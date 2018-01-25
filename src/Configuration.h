@@ -86,10 +86,12 @@ struct Configuration {
     };
 
     struct Led {
+        static constexpr uint16_t pwm_frequency = 10khz;
         static constexpr uint16_t pwm_resolution = 12_bit;
-        static constexpr uint16_t pwm_changed_threshold = 100;
-        static constexpr uint8_t potmeter_pin[2] = {36, 39};
-        static constexpr uint8_t mosfet_pin[2] = {0, 0};
+        static constexpr uint8_t  pwm_pin[2] = {14, 12};
+
+        static constexpr uint16_t potmeter_threshold = 100;
+        static constexpr uint8_t  potmeter_pin[2] = {36, 39};
     };
 
 };

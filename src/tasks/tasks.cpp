@@ -23,9 +23,14 @@ void tasks::potmeter(void* args) {
     // and the queue as well
     uint32_t index = (uint32_t)args;
     uint8_t pin = Configuration::Led::potmeter_pin[index];
+    uint8_t pwm = Configuration::Led::pwm_pin[index];
 
     printf("POTM | Potmeter reading task is started.\n       Pin: %d\n", pin);
     pinMode(pin, INPUT);
+
+    // start PWM handling (index could use as the analog channel)
+    ledcSetup(index, Configuration::Led::pwm_frequency, Configuration::Led::pwm_resolution);
+    ledcAttachPin(pwm, index);
 
     uint16_t previous_measurement = 10000, current_measurement;
     tasks::FrameSelectorMessage fsm;
@@ -36,13 +41,16 @@ void tasks::potmeter(void* args) {
 
     for (;;) {
         current_measurement = analogRead(pin);
-        if (std::abs(current_measurement - previous_measurement) > Configuration::Led::pwm_changed_threshold) {
+        if (std::abs(current_measurement - previous_measurement) > Configuration::Led::potmeter_threshold) {
             f = (float)current_measurement / res * 100.0;
             previous_measurement = current_measurement;
 
             // sending message
             xQueueSend(tasks::queues::ledQueue[index], &f, (TickType_t)10);
             xQueueSend(tasks::queues::displayQueue, &fsm, (TickType_t)10);
+
+            // also write PWM value to the output as well
+            ledcWrite(index, current_measurement);
             vTaskDelay(50ms);
         } else {
             // task can rest until 100ms

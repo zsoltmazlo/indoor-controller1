@@ -11,7 +11,7 @@ using namespace tasks::queues;
 
 // array must be defined somewhere to allocate memory for them
 constexpr uint8_t Configuration::Led::potmeter_pin[2];
-constexpr uint8_t Configuration::Led::mosfet_pin[2];
+constexpr uint8_t Configuration::Led::pwm_pin[2];
 
 void setup() {
     pinMode(Configuration::led_pin, OUTPUT);
@@ -36,7 +36,6 @@ void setup() {
     if (Configuration::Interfaces::display) {
         // start task for ssd1306 display
         xTaskCreatePinnedToCore(tasks::display, "display_task", 8192, NULL, 1, NULL, 0);
-        // we should wait to initialize all task (especially the display)
         delay(Configuration::logo_display_time);
 
         // send weather update message in a separated task
