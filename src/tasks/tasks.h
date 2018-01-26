@@ -63,7 +63,7 @@ void display(void* args);
 
 void connection(void* args);
 
-void potmeter(void* args);
+void ledcontroller(void* args);
 
 void temperature(void* args);
 

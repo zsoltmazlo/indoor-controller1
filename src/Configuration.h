@@ -9,25 +9,15 @@
 
 using Connection = MqttConnection<4, WiFiClient>;
 
-constexpr unsigned long long operator"" khz(unsigned long long khz) {
-    return khz * 1000;
-}
+constexpr unsigned long long operator"" khz(unsigned long long khz) { return khz * 1000; }
 
-constexpr unsigned long long operator"" min(unsigned long long s) {
-    return s * 1000 * 60;
-}
+constexpr unsigned long long operator"" min(unsigned long long s) { return s * 1000 * 60; }
 
-constexpr unsigned long long operator"" s(unsigned long long s) {
-    return s * 1000;
-}
+constexpr unsigned long long operator"" s(unsigned long long s) { return s * 1000; }
 
-constexpr unsigned long long operator"" ms(unsigned long long ms) {
-    return ms;
-}
+constexpr unsigned long long operator"" ms(unsigned long long ms) { return ms; }
 
-constexpr unsigned long long operator"" _bit(unsigned long long bit) {
-    return bit;
-}
+constexpr unsigned long long operator"" _bit(unsigned long long bit) { return bit; }
 
 struct Configuration {
     static constexpr char* firmware_version = "1.0.0b";
@@ -51,6 +41,7 @@ struct Configuration {
         static constexpr char* remote = CLIENT_ID "/remote";
         static constexpr char* weather = CLIENT_ID "/weather";
         static constexpr char* weather_req = "weather/request";
+        static constexpr char* ledcontrol = CLIENT_ID "/led%d";
     };
 
     struct Interfaces {
@@ -78,10 +69,9 @@ struct Configuration {
     struct Led {
         static constexpr uint16_t pwm_frequency = 10khz;
         static constexpr uint16_t pwm_resolution = 12_bit;
-        static constexpr uint8_t  pwm_pin[2] = {14, 12};
+        static constexpr uint8_t pwm_pin[2] = {14, 12};
 
         static constexpr uint16_t potmeter_threshold = 100;
-        static constexpr uint8_t  potmeter_pin[2] = {36, 39};
+        static constexpr uint8_t potmeter_pin[2] = {36, 39};
     };
-
 };

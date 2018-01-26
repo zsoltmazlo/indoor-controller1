@@ -5,6 +5,7 @@
 #include <iostream>
 #include <string>
 #include "Configuration.h"
+#include "debug.h"
 #include "tasks/tasks.h"
 
 using namespace tasks::queues;
@@ -14,6 +15,8 @@ constexpr uint8_t Configuration::Led::potmeter_pin[2];
 constexpr uint8_t Configuration::Led::pwm_pin[2];
 
 void setup() {
+    debug::init();
+
     pinMode(Configuration::led_pin, OUTPUT);
     digitalWrite(Configuration::led_pin, Configuration::is_led_active_low ? LOW : HIGH);
 
@@ -28,7 +31,7 @@ void setup() {
     Connection::instance->setDebugStream(&Serial);
 
     delay(100ms);
-    printf("MAIN | MCU started\n     | Version: %s\n", Configuration::firmware_version);
+    debug::printf("MAIN | MCU started\n     | Version: %s\n", Configuration::firmware_version);
 
     // start mqtt connection listener thread
     xTaskCreatePinnedToCore(tasks::connection, "connection_task", 8192, NULL, 1, NULL, 1);
@@ -44,8 +47,8 @@ void setup() {
 
     if (Configuration::Interfaces::ledcontrol) {
         // starting tasks to read analog pin for leds
-        xTaskCreatePinnedToCore(tasks::potmeter, "led0", 8192, (void*)0, 1, NULL, 1);
-        xTaskCreatePinnedToCore(tasks::potmeter, "led1", 8192, (void*)1, 1, NULL, 1);
+        xTaskCreatePinnedToCore(tasks::ledcontroller, "led0", 8192, (void *)0, 1, NULL, 1);
+        xTaskCreatePinnedToCore(tasks::ledcontroller, "led1", 8192, (void *)1, 1, NULL, 1);
     }
 
     if (Configuration::Interfaces::temperature) {

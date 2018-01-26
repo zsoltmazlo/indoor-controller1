@@ -4,6 +4,7 @@
 #include "freertos/task.h"
 #include "logo.h"
 #include "tasks.h"
+#include "debug.h"
 
 #include <ctime>
 
@@ -26,7 +27,7 @@ static std::string formatDate(const char* fmt, uint64_t epoch) {
 tasks::Display::Display() : display_{Configuration::Display::scl_pin, Configuration::Display::sda_pin, 16} {}
 
 void tasks::Display::operator()(void* args) {
-    printf("DISP | Task started.\n");
+   debug::printf("DISP | Task started.\n");
 
     // before starting the display, we should initialize queues and register them
     for (uint8_t i = 0; i < 2; ++i) {
@@ -51,9 +52,9 @@ void tasks::Display::operator()(void* args) {
 
     // also we should subscribe to the weather topic to get information
     ::Connection::instance->subscribe(Configuration::Topics::weather, [&](const std::string& msg) {
-        printf("WTHR | New information arrived!\n");
+        debug::printf("WTHR | New information arrived!\n");
         appState.weather = common::Weather::parseFromJson(msg);
-        printf("WTHR | Current temperature: %0.2f\n", appState.weather.getTemperature());
+        debug::printf("WTHR | Current temperature: %0.2f\n", appState.weather.getTemperature());
     });
 
     // OVERVIEW FRAME

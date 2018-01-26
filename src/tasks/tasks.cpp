@@ -1,7 +1,9 @@
 #include "tasks.h"
 #include <Arduino.h>
+#include <ArduinoJson.h>
 #include <cmath>
 #include "Configuration.h"
+#include "debug.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
@@ -18,14 +20,14 @@ void tasks::connection(void* args) {
     task(args);
 }
 
-void tasks::potmeter(void* args) {
+void tasks::ledcontroller(void* args) {
     // argument will hold the led index which could use to get the pin number
     // and the queue as well
     uint32_t index = (uint32_t)args;
     uint8_t pin = Configuration::Led::potmeter_pin[index];
     uint8_t pwm = Configuration::Led::pwm_pin[index];
 
-    printf("POTM | Potmeter reading task is started.\n       Pin: %d\n", pin);
+    debug::printf("LED%d | Led control task is started.\n      POTMETER pin: %d\n      PWM pin: %d\n", index, pin, pwm);
     pinMode(pin, INPUT);
 
     // start PWM handling (index could use as the analog channel)
@@ -38,6 +40,22 @@ void tasks::potmeter(void* args) {
     fsm.interval = 5s;
     float f;
     constexpr uint16_t res = 1 << Configuration::Led::pwm_resolution;
+
+    // subscribe for topic too (it is sad that std::to_string is not an option)
+    char topic[16];
+    sprintf(topic, Configuration::Topics::ledcontrol, index);
+    ::Connection::instance->subscribe(topic, [&](const std::string& message) {
+        debug::printf("LED%d | message received! %s\n", index, message.c_str());
+        StaticJsonBuffer<200> jsonBuffer;
+        JsonObject& object = jsonBuffer.parse(message.c_str());
+
+        if (object.containsKey("value")) {
+            f = object["value"].as<float>();
+            xQueueSend(tasks::queues::ledQueue[index], &f, (TickType_t)10);
+            xQueueSend(tasks::queues::displayQueue, &fsm, (TickType_t)10);
+            ledcWrite(index, (uint16_t)(4096 * f / 100.0));
+        }
+    });
 
     for (;;) {
         current_measurement = analogRead(pin);
@@ -62,7 +80,7 @@ void tasks::potmeter(void* args) {
 extern NTPClient ntpClient;
 
 void tasks::temperature(void* args) {
-    printf("TEMP | Task started\n");
+    debug::printf("TEMP | Task started\n");
 
     float temp;
     for (;;) {
