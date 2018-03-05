@@ -52,8 +52,8 @@ struct Configuration {
     };
 
     struct Display {
-        static constexpr int8_t scl_pin = 4;  //-1; //4;
-        static constexpr int8_t sda_pin = 5;  //-1; // 5;
+        static constexpr int8_t scl_pin = -1;
+        static constexpr int8_t sda_pin = -1; 
         static constexpr uint32_t i2c_frequency = 400khz;
         static constexpr uint16_t frame_change_interval = 10s;
         static constexpr uint16_t frame_update_interval = 100ms;
@@ -71,7 +71,7 @@ struct Configuration {
         static constexpr uint16_t pwm_resolution = 12_bit;
         static constexpr uint8_t pwm_pin[2] = {14, 12};
 
-        static constexpr uint16_t potmeter_threshold = 100;
-        static constexpr uint8_t potmeter_pin[2] = {36, 39};
+        static constexpr uint16_t potmeter_threshold = 204;
+        static constexpr uint8_t potmeter_pin[2] = {39, 36};
     };
 };

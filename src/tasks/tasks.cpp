@@ -39,7 +39,7 @@ void tasks::ledcontroller(void* args) {
     fsm.frameIndex = 0;
     fsm.interval = 5s;
     float f;
-    constexpr uint16_t res = 1 << Configuration::Led::pwm_resolution;
+    constexpr float fivePercent = (1 << Configuration::Led::pwm_resolution) * 0.05;
 
     // subscribe for topic too (it is sad that std::to_string is not an option)
     char topic[16];
@@ -60,7 +60,8 @@ void tasks::ledcontroller(void* args) {
     for (;;) {
         current_measurement = analogRead(pin);
         if (std::abs(current_measurement - previous_measurement) > Configuration::Led::potmeter_threshold) {
-            f = (float)current_measurement / res * 100.0;
+
+            f = (float)current_measurement / fivePercent * 5.0;
             previous_measurement = current_measurement;
 
             // sending message
