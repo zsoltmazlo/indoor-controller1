@@ -72,7 +72,7 @@ void tasks::Display::operator()(void* args) {
             display_.display();
         }
     });
-
+    
     // OVERVIEW FRAME
     display_.setFrame(0, [&](SSD1306<3>& display) {
         display.clearDisplay();
