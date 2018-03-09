@@ -9,6 +9,7 @@
 
 #include "Configuration.h"
 #include "DS18B20.hpp"
+#include "ButtonEvent.h"
 
 void tasks::display(void* args) {
     auto task = tasks::Display{};
@@ -18,6 +19,62 @@ void tasks::display(void* args) {
 void tasks::connection(void* args) {
     auto task = tasks::Connection{};
     task(args);
+}
+
+void tasks::button(void* args) {
+    debug::printf("BTTN | Button event manager task is started.\n");
+
+    // button events could fired very rapidly, thus we should have a big
+    // queue for that events
+    tasks::queues::buttonEventQueue = xQueueCreate(100, sizeof(ButtonEvent));
+
+    // we will save 4 samples of the button measurement, and send a message
+    // for each element
+    uint8_t sample_count = 0;
+    uint8_t samples = 0;
+    ButtonEvent event;
+    ButtonEvent prevEvent;
+
+    pinMode(Configuration::button_pin, INPUT);
+    
+    TickType_t last_wake_time = xTaskGetTickCount();
+    for(;;) {
+        prevEvent = event;
+        
+        // get one sample
+        samples <<= 1;
+        samples &= 0x0F;
+        samples |= digitalRead(Configuration::button_pin);
+
+        switch(samples) {
+            case 0x0F:
+                event = ButtonEvent::EV_HIGH;
+                break;
+
+            case 0x00:
+                event = ButtonEvent::EV_LOW;
+                break;
+
+            case 0x07:
+            case 0x03:
+            case 0x01:
+                event = ButtonEvent::EV_RISING;
+                break;
+
+            case 0x08:
+            case 0x0C:
+            case 0x0E:
+                event = ButtonEvent::EV_FALLING;
+                break;
+        }
+
+        if( prevEvent != event ) {
+            debug::printf("BTTN | Sending event: %d\n", event);
+            xQueueSend(tasks::queues::buttonEventQueue, &event, (TickType_t)10);
+        }
+
+        vTaskDelayUntil(&last_wake_time, 5ms);
+    }
 }
 
 void tasks::ledcontroller(void* args) {
@@ -127,3 +184,5 @@ QueueHandle_t tasks::queues::ledQueue[2];
 QueueHandle_t tasks::queues::temperatureQueue;
 
 QueueHandle_t tasks::queues::displayQueue;
+
+QueueHandle_t tasks::queues::buttonEventQueue;

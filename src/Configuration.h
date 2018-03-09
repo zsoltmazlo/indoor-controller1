@@ -7,7 +7,7 @@
 
 #define CLIENT_ID "chthonious"  // dictys cyllarus chthonious
 
-using Connection = MqttConnection<4, WiFiClient>;
+using Connection = MqttConnection<6, WiFiClient>;
 
 constexpr unsigned long long operator"" khz(unsigned long long khz) { return khz * 1000; }
 
@@ -20,7 +20,7 @@ constexpr unsigned long long operator"" ms(unsigned long long ms) { return ms; }
 constexpr unsigned long long operator"" _bit(unsigned long long bit) { return bit; }
 
 struct Configuration {
-    static constexpr char* firmware_version = "1.0.0b";
+    static constexpr char* firmware_version = "1.1.0b";
     static constexpr char* client_id = CLIENT_ID;
     static constexpr char* ssid = "lsmx49";
     static constexpr char* pwd = "";
@@ -34,14 +34,15 @@ struct Configuration {
 
     static constexpr uint16_t logo_display_time = 4s;
 
+    static constexpr uint8_t button_pin = 34;
+
     struct Topics {
-        static constexpr char* time_req = "time/request";
-        static constexpr char* time_res = CLIENT_ID "/time";
         static constexpr char* sensor = CLIENT_ID "/sensor";
         static constexpr char* remote = CLIENT_ID "/remote";
         static constexpr char* weather = CLIENT_ID "/weather";
         static constexpr char* weather_req = "weather/request";
         static constexpr char* ledcontrol = CLIENT_ID "/led%d";
+        static constexpr char* display = CLIENT_ID "/display";
     };
 
     struct Interfaces {

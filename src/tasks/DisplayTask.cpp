@@ -5,6 +5,7 @@
 #include "logo.h"
 #include "tasks.h"
 #include "debug.h"
+#include "../ButtonEvent.h"
 
 #include <ctime>
 
@@ -55,6 +56,21 @@ void tasks::Display::operator()(void* args) {
         debug::printf("WTHR | New information arrived!\n");
         appState.weather = common::Weather::parseFromJson(msg);
         debug::printf("WTHR | Current temperature: %0.2f\n", appState.weather.getTemperature());
+    });
+
+    // subscribe to the button topic to turn on/off display
+    ::Connection::instance->subscribe(Configuration::Topics::display, [&](const std::string& msg) {
+        debug::printf("DISP | New information arrived!\n");
+        StaticJsonBuffer<100> jsonBuffer;
+        JsonObject& object = jsonBuffer.parseObject(msg.c_str());
+
+        if( object["state"] == "ON") {
+            appState.display_is_on = true;
+        } else if ( object["state"] == "OFF" ) {
+            appState.display_is_on = false;
+            display_.clearDisplay();
+            display_.display();
+        }
     });
 
     // OVERVIEW FRAME
@@ -129,8 +145,12 @@ void tasks::Display::operator()(void* args) {
     TickType_t lastUpdate = xTaskGetTickCount();
     FrameSelectorMessage frameSelectorMessage;
 
+    ButtonEvent event;
+
     for (;;) {
+
         while (count > 0) {
+
             // update data
             ntpClient.update();
             appState.runUpdaters();
@@ -140,12 +160,26 @@ void tasks::Display::operator()(void* args) {
                 display_.setCurrentFrame(frameSelectorMessage.frameIndex);
                 count = frameSelectorMessage.interval / Configuration::Display::frame_update_interval;
             }
+            
+            // check if we got a button event
+            if ( xQueueReceive(buttonEventQueue, (void*)&event, (TickType_t)10)) {
+                if( event == ButtonEvent::EV_FALLING ) {
+                    appState.display_is_on = !appState.display_is_on;
+                    debug::printf("DISP | Display status changed: %d\n", appState.display_is_on);
+                    if( !appState.display_is_on) {
+                        display_.clearDisplay();
+                        display_.display();
+                    }
+                }
+            }
 
-            // run display frames to be the most fresh frame in the buffers
-            display_.updateFrames();
+            if( appState.display_is_on ) {
+                // run display frames to be the most fresh frame in the buffers
+                display_.updateFrames();
+                --count;
+            }
 
             vTaskDelayUntil(&lastUpdate, Configuration::Display::frame_update_interval);
-            --count;
         }
 
         // if count is 0, then we need to change the frame

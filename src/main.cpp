@@ -27,6 +27,9 @@ void setup() {
     setenv("TZ", "CET-1CEST,M3.5.0,M10.5.0/3", 1);
     tzset();
 
+    // start button task immediately
+    xTaskCreate(tasks::button, "button_task", 2048, NULL, 1, NULL);
+
     Connection::initialize(Configuration::mqtt_broker, Configuration::mqtt_port, Configuration::client_id);
     Connection::instance->setDebugStream(&Serial);
 

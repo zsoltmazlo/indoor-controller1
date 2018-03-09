@@ -22,6 +22,9 @@ class ApplicationState {
     // store temperature value as well
     float temperature;
 
+    // stores the flag whenever the display is on or not
+    bool display_is_on;
+
     // weather information
     common::WeatherCondition weatherCondition;
 

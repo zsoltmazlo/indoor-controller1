@@ -1,6 +1,6 @@
 #include "ApplicationState.h"
 
-ApplicationState::ApplicationState() : weatherCondition(common::WeatherCondition::HeavyRainy) {}
+ApplicationState::ApplicationState() : display_is_on(true), weatherCondition(common::WeatherCondition::HeavyRainy) {}
 
 void ApplicationState::registerFn(updater_fn fn, member_t member, uint8_t size) {
     updaters_.push_back(std::make_tuple(fn, member, size));

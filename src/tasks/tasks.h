@@ -17,6 +17,8 @@ extern QueueHandle_t temperatureQueue;
 
 extern QueueHandle_t displayQueue;
 
+extern QueueHandle_t buttonEventQueue;
+
 }  // namespace queues
 
 class Connection {
@@ -64,6 +66,8 @@ void display(void* args);
 void connection(void* args);
 
 void ledcontroller(void* args);
+
+void button(void* args);
 
 void temperature(void* args);
 
