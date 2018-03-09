@@ -25,7 +25,7 @@ The unit is based on a NodeMCU ESP-32S module with linear-potmeters as input and
 
 The unit uses a [2.42" display](https://www.ebay.com/itm/I2C-2-42-OLED-128x64-Graphic-OLED-White-Display-Arduino-PIC-Multi-wii/191835417966?ssPageName=STRK%3AMEBIDX%3AIT&_trksid=p2057872.m2749.l2649) to show current information and also, there is a hidden capacitive touch-button under the hood to switch on/off the display.
 
-[[https://raw.githubusercontent.com/wiki/zsoltmazlo/indoor-controller1/2018-03-09%2021.22.24.jpg]]
+![controller unit](https://raw.githubusercontent.com/wiki/zsoltmazlo/indoor-controller1/2018-03-09%2021.22.24.jpg)
 
 
 ## Software
