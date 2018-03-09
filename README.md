@@ -39,6 +39,7 @@ You can use this code as follows:
 
 1. Install Visual Studio Code with the [PlatformIO](https://platformio.org/) plugin
 2. Checkout this repository
+3. Checkout the [libraries repository](https://github.com/zsoltmazlo/ESP32-libs) as well.
 3. Open repository folder with VS Code
 4. Install libraries with the following command: `pio lib install 13, 64, 551, 1, 89`
 5. Build code and upload it.
